@@ -1,6 +1,7 @@
 import os
 import requests
 import openai
+from app.database import save_search_results
 
 def search_gpt(query):
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -21,7 +22,15 @@ def search_google(query):
         "cx": cx
     }
     response = requests.get(url, params=params)
-    return response.json()
+    results = response.json()
+    
+    try:
+        search_id = save_search_results(query, results)
+        results['search_id'] = search_id
+    except Exception as e:
+        print(f"Error saving search results: {e}")
+    
+    return results
 
 def search_bing(query):
     api_key = os.getenv("BING_API_KEY")
